@@ -38,8 +38,20 @@
         updateSleepStats();
         scheduleAlarmCheck();
 
-        // Auto-connect in demo mode
-        if (SleepHaloAPI.isDemoMode()) {
+        // Auto-detect: if served from the Pi, connect directly
+        if (window.location.protocol === 'http:' &&
+            !window.location.hostname.includes('github.io') &&
+            window.location.hostname !== '') {
+            SleepHaloAPI.setDemoMode(false);
+            SleepHaloAPI.connect('', 0).then(() => {
+                updateConnectionUI(true, false);
+                showToast('Connected to SleepHalo device', 'success');
+            }).catch(() => {
+                SleepHaloAPI.setDemoMode(true);
+                updateConnectionUI(false, false);
+            });
+        } else if (SleepHaloAPI.isDemoMode()) {
+            // GitHub Pages or local file — use demo mode
             SleepHaloAPI.connect('demo', 5000).then(() => {
                 updateConnectionUI(true, true);
             });

@@ -14,10 +14,11 @@ Usage:
     sudo python server.py
 """
 
+import os
 import time
 import threading
 import json
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 # Try to import neopixel (only works on Raspberry Pi)
@@ -36,7 +37,9 @@ LED_BRIGHTNESS = 0.7    # Default brightness (0.0 to 1.0)
 SERVER_PORT = 5000
 
 # ---- App Setup ----
-app = Flask(__name__)
+# Serve the web app from the parent directory (one level up from pi-server)
+WEB_APP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+app = Flask(__name__, static_folder=WEB_APP_DIR, static_url_path='')
 CORS(app)  # Allow requests from the web app
 
 # ---- LED Controller ----
@@ -212,6 +215,14 @@ class LEDController:
 
 # Create the controller instance
 led = LEDController()
+
+
+# ---- Web App Routes ----
+
+@app.route('/')
+def serve_index():
+    """Serve the main web app page."""
+    return send_from_directory(WEB_APP_DIR, 'index.html')
 
 
 # ---- API Routes ----

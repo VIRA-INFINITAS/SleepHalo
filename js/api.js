@@ -118,10 +118,27 @@ const SleepHaloAPI = (() => {
     // ---- Public API Methods ----
 
     /**
+     * Check if the web app is being served directly from the Pi server.
+     * If so, we can use relative URLs and skip the IP configuration.
+     */
+    function isServedFromDevice() {
+        const loc = window.location;
+        // Served from Pi if it's HTTP on a local/private IP (not github.io, not file://)
+        return loc.protocol === 'http:' &&
+               !loc.hostname.includes('github.io') &&
+               loc.hostname !== '';
+    }
+
+    /**
      * Try to connect to the device and check status.
      */
     async function connect(ip, port) {
-        configure(ip, port);
+        if (isServedFromDevice()) {
+            // App is loaded from the Pi — use relative URLs (same origin)
+            baseUrl = '';
+        } else {
+            configure(ip, port);
+        }
 
         if (demoMode) {
             connected = true;
