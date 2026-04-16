@@ -2,7 +2,7 @@
     "name": "SleepHalo",
     "short_name": "SleepHalo",
     "description": "Smart circadian light system. Fall asleep with the sunset. Wake up with the sun.",
-    "start_url": "/index.html",
+    "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#0a0e27",
     "theme_color": "#0a0e27",
