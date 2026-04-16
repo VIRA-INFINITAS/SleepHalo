@@ -72,6 +72,8 @@ const SoundLibrary = (() => {
 
     /**
      * Initialise the audio context (must happen after user gesture).
+     * On iOS Safari the context starts in 'suspended' state and must
+     * be resumed inside a touch/click handler.
      */
     function init() {
         if (audioCtx) return;
@@ -79,14 +81,25 @@ const SoundLibrary = (() => {
         masterGain = audioCtx.createGain();
         masterGain.gain.value = 0.6;
         masterGain.connect(audioCtx.destination);
+
+        // iOS unlock: play a tiny silent buffer so the context becomes
+        // "allowed" by the browser even before real sounds are queued.
+        try {
+            const silentBuf = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+            const src = audioCtx.createBufferSource();
+            src.buffer = silentBuf;
+            src.connect(audioCtx.destination);
+            src.start(0);
+        } catch (e) { /* ignore */ }
     }
 
     /**
      * Resume audio context if it was suspended (browser policy).
+     * Returns a promise so callers can await it before creating nodes.
      */
-    function ensureRunning() {
+    async function ensureRunning() {
         if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume();
+            await audioCtx.resume();
         }
     }
 
@@ -123,22 +136,22 @@ const SoundLibrary = (() => {
     /**
      * Toggle a sound on or off.
      */
-    function toggle(soundId) {
+    async function toggle(soundId) {
         init();
-        ensureRunning();
+        await ensureRunning();
         if (activeSounds[soundId]) {
             stop(soundId);
         } else {
-            play(soundId);
+            await play(soundId);
         }
     }
 
     /**
      * Play a specific sound.
      */
-    function play(soundId) {
+    async function play(soundId) {
         init();
-        ensureRunning();
+        await ensureRunning();
         if (activeSounds[soundId]) return; // already playing
 
         const nodes = createSoundNodes(soundId);

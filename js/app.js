@@ -375,8 +375,8 @@
                 </div>
             `;
 
-            card.addEventListener('click', () => {
-                SoundLibrary.toggle(sound.id);
+            card.addEventListener('click', async () => {
+                await SoundLibrary.toggle(sound.id);
                 updateSoundUI();
             });
 
