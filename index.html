@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e27">
+    <meta name="description" content="SleepHalo - Smart circadian light system. Fall asleep with the sunset. Wake up with the sun.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>SleepHalo</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+    <link rel="apple-touch-icon" href="assets/logo.svg">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="bg-stars" id="bgStars"></div>
+
+    <div class="app-container" id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-container">
+                <img src="assets/logo.svg" alt="SleepHalo" class="logo-icon">
+                <h1 class="logo-text"><span class="logo-sleep">Sleep</span><span class="logo-halo">Halo</span></h1>
+            </div>
+            <div class="greeting" id="greeting">Good evening</div>
+            <button class="settings-btn" id="settingsBtn" aria-label="Settings">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Main scrollable content -->
+        <main class="app-main" id="appMain">
+
+            <!-- ===== ROUTINE VIEW ===== -->
+            <section class="view active" id="viewRoutine">
+                <!-- Status Card -->
+                <div class="status-card" id="statusCard">
+                    <div class="status-icon" id="statusIcon">
+                        <div class="sun-moon-anim">
+                            <div class="orbit-ring"></div>
+                            <div class="celestial-body" id="celestialBody">🌙</div>
+                        </div>
+                    </div>
+                    <div class="status-text" id="statusText">No simulation active</div>
+                    <div class="progress-bar-container" id="progressContainer" style="display:none;">
+                        <div class="progress-bar" id="progressBar"></div>
+                        <div class="progress-glow" id="progressGlow"></div>
+                    </div>
+                </div>
+
+                <!-- Focus Mode -->
+                <div class="card focus-card">
+                    <div class="card-left">
+                        <svg class="card-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>Focus Mode</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="focusToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <!-- Countdown Timer -->
+                <div class="card timer-card" id="timerCard" style="display:none;">
+                    <div class="timer-label" id="timerLabel">Simulation Ends In</div>
+                    <div class="timer-display" id="timerDisplay">00:00</div>
+                    <button class="btn btn-sm btn-danger" id="stopSimBtn">Stop</button>
+                </div>
+
+                <!-- Bedtime Section -->
+                <div class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    Sunset Simulation
+                </div>
+                <div class="card schedule-card">
+                    <div class="schedule-row">
+                        <label for="bedtime">Bedtime</label>
+                        <input type="time" id="bedtime" value="22:30" class="time-input">
+                    </div>
+                    <div class="schedule-row">
+                        <label for="sunsetDuration">Duration (min)</label>
+                        <div class="duration-control">
+                            <button class="duration-btn" data-target="sunsetDuration" data-delta="-5">−</button>
+                            <span id="sunsetDuration" class="duration-value">30</span>
+                            <button class="duration-btn" data-target="sunsetDuration" data-delta="5">+</button>
+                        </div>
+                    </div>
+                    <p class="card-hint">The lamp will start dimming before your bedtime and transition through warm sunset colours.</p>
+                    <button class="btn btn-primary" id="startSunsetBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        Start Sunset Now
+                    </button>
+                </div>
+
+                <!-- Sunrise / Alarm Section -->
+                <div class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 18a5 5 0 0 0-10 0"></path>
+                        <line x1="12" y1="2" x2="12" y2="9"></line>
+                        <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                        <line x1="1" y1="18" x2="3" y2="18"></line>
+                        <line x1="21" y1="18" x2="23" y2="18"></line>
+                        <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                        <line x1="23" y1="22" x2="1" y2="22"></line>
+                        <polyline points="8 6 12 2 16 6"></polyline>
+                    </svg>
+                    Sunrise Alarm
+                </div>
+                <div class="card schedule-card">
+                    <div class="schedule-row">
+                        <label for="alarmTime">Wake-up Time</label>
+                        <input type="time" id="alarmTime" value="07:00" class="time-input">
+                    </div>
+                    <div class="schedule-row">
+                        <label for="sunriseDuration">Sunrise Duration (min)</label>
+                        <div class="duration-control">
+                            <button class="duration-btn" data-target="sunriseDuration" data-delta="-5">−</button>
+                            <span id="sunriseDuration" class="duration-value">20</span>
+                            <button class="duration-btn" data-target="sunriseDuration" data-delta="5">+</button>
+                        </div>
+                    </div>
+                    <div class="schedule-row">
+                        <label>Alarm Sound</label>
+                        <select id="alarmSound" class="select-input">
+                            <option value="gentle-chime">Gentle Chime</option>
+                            <option value="birds">Birds Singing</option>
+                            <option value="ocean">Ocean Waves</option>
+                            <option value="none">Light Only</option>
+                        </select>
+                    </div>
+                    <label class="toggle-row">
+                        <span>Enable Alarm</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="alarmToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+                    <p class="card-hint">The lamp will begin a sunrise simulation before your alarm time, gradually brightening the room.</p>
+                </div>
+
+                <!-- Quick Light Control -->
+                <div class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="9" y1="18" x2="15" y2="18"></line>
+                        <line x1="10" y1="22" x2="14" y2="22"></line>
+                        <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path>
+                    </svg>
+                    Quick Light Control
+                </div>
+                <div class="card">
+                    <div class="brightness-control">
+                        <label for="brightnessSlider">Brightness</label>
+                        <input type="range" id="brightnessSlider" min="0" max="100" value="70" class="slider">
+                        <span id="brightnessValue" class="slider-value">70%</span>
+                    </div>
+                    <div class="colour-presets">
+                        <button class="colour-btn" data-color="#ff8c42" style="background:#ff8c42" title="Warm Sunset"></button>
+                        <button class="colour-btn" data-color="#ff6b35" style="background:#ff6b35" title="Deep Orange"></button>
+                        <button class="colour-btn" data-color="#e84855" style="background:#e84855" title="Warm Red"></button>
+                        <button class="colour-btn" data-color="#f9dc5c" style="background:#f9dc5c" title="Daylight"></button>
+                        <button class="colour-btn" data-color="#7b68ee" style="background:#7b68ee" title="Relaxing Purple"></button>
+                        <button class="colour-btn" data-color="#20b2aa" style="background:#20b2aa" title="Cool Teal"></button>
+                        <button class="colour-btn active" data-color="#000000" style="background:#1a1a2e; border: 1px dashed rgba(255,255,255,0.3)" title="Off"></button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SOUNDS VIEW ===== -->
+            <section class="view" id="viewSounds">
+                <div class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    Sound Library
+                </div>
+
+                <!-- Volume Control -->
+                <div class="card">
+                    <div class="brightness-control">
+                        <label for="soundVolume">Master Volume</label>
+                        <input type="range" id="soundVolume" min="0" max="100" value="60" class="slider">
+                        <span id="volumeValue" class="slider-value">60%</span>
+                    </div>
+                </div>
+
+                <!-- Sound Timer -->
+                <div class="card">
+                    <div class="schedule-row">
+                        <label>Auto-stop after</label>
+                        <select id="soundTimer" class="select-input">
+                            <option value="0">No limit</option>
+                            <option value="15">15 minutes</option>
+                            <option value="30" selected>30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="120">2 hours</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sound Cards Grid -->
+                <div class="sound-grid" id="soundGrid">
+                    <!-- Sound cards will be dynamically generated -->
+                </div>
+
+                <!-- Mix Info -->
+                <div class="card mix-info" id="mixInfo" style="display:none;">
+                    <div class="mix-title">Now Playing</div>
+                    <div class="mix-sounds" id="activeSounds"></div>
+                    <button class="btn btn-sm btn-danger" id="stopAllSoundsBtn">Stop All</button>
+                </div>
+            </section>
+
+            <!-- ===== SLEEP VIEW ===== -->
+            <section class="view" id="viewSleep">
+                <div class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    Sleep Overview
+                </div>
+
+                <!-- Sleep Schedule -->
+                <div class="card">
+                    <h3 class="card-title">Your Schedule</h3>
+                    <div class="sleep-schedule-visual">
+                        <div class="schedule-timeline">
+                            <div class="timeline-bar">
+                                <div class="timeline-sunset" id="timelineSunset"></div>
+                                <div class="timeline-sleep" id="timelineSleep"></div>
+                                <div class="timeline-sunrise" id="timelineSunrise"></div>
+                            </div>
+                            <div class="timeline-labels">
+                                <span id="schedBedtime">22:30</span>
+                                <span id="schedWake">07:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sleep-stats-row">
+                        <div class="sleep-stat">
+                            <div class="stat-value" id="sleepDurationStat">8h 30m</div>
+                            <div class="stat-label">Sleep Window</div>
+                        </div>
+                        <div class="sleep-stat">
+                            <div class="stat-value" id="sunsetStartStat">22:00</div>
+                            <div class="stat-label">Sunset Starts</div>
+                        </div>
+                        <div class="sleep-stat">
+                            <div class="stat-value" id="sunriseStartStat">06:40</div>
+                            <div class="stat-label">Sunrise Starts</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips -->
+                <div class="card">
+                    <h3 class="card-title">Sleep Tips</h3>
+                    <div class="tips-list">
+                        <div class="tip-item">
+                            <span class="tip-icon">📱</span>
+                            <p>Put your phone away 30 minutes before bed. Let SleepHalo handle your wind-down routine.</p>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">🌡️</span>
+                            <p>Keep your bedroom cool, between 16-19°C, for the best sleep quality.</p>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">☕</span>
+                            <p>Avoid caffeine at least 6 hours before bedtime to fall asleep more easily.</p>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">🧘</span>
+                            <p>Combine SleepHalo's sunset mode with deep breathing for a better wind-down effect.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Connection -->
+                <div class="card">
+                    <h3 class="card-title">Device Connection</h3>
+                    <div class="connection-status">
+                        <div class="status-dot" id="connectionDot"></div>
+                        <span id="connectionText">Not connected</span>
+                    </div>
+                    <div class="schedule-row">
+                        <label for="piAddress">Device IP Address</label>
+                        <input type="text" id="piAddress" placeholder="192.168.1.100" class="text-input" value="">
+                    </div>
+                    <div class="schedule-row">
+                        <label for="piPort">Port</label>
+                        <input type="number" id="piPort" placeholder="5000" class="text-input" value="5000">
+                    </div>
+                    <button class="btn btn-primary" id="connectBtn">Connect to Device</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-view="viewRoutine">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Routine</span>
+            </button>
+            <button class="nav-btn" data-view="viewSounds">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+                <span>Sounds</span>
+            </button>
+            <button class="nav-btn" data-view="viewSleep">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+                <span>Sleep</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close" id="closeSettings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="schedule-row">
+                    <label for="userName">Your Name</label>
+                    <input type="text" id="userName" placeholder="Enter your name" class="text-input" value="">
+                </div>
+                <div class="schedule-row">
+                    <label>Theme</label>
+                    <select id="themeSelect" class="select-input">
+                        <option value="dark">Dark (Default)</option>
+                        <option value="midnight">Midnight Blue</option>
+                    </select>
+                </div>
+                <label class="toggle-row">
+                    <span>Enable Notifications</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notifToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </label>
+                <label class="toggle-row">
+                    <span>Demo Mode (no device needed)</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="demoToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </label>
+                <button class="btn btn-primary" id="saveSettings" style="margin-top: 1rem;">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/sounds.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
